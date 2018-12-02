@@ -31,7 +31,7 @@ for filename in glob.glob('dataset/*.npy'):
         classname = filename.split('/')[1].split('.')[0].split('_')[3]
         classes.add(classname)
         y.append(classname)
-        break
+        # break
         # if k > 100:
         #     break
         # k += 1
