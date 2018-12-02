@@ -19,10 +19,11 @@ classes = set()
 i = 0
 for filename in glob.glob('dataset/*.npy'):
     raw_images = np.load(filename)
-    if i > 1:
-        break
-    i+=1
-    k = 0
+    print('loading ', filename)
+    # if i > 1:
+    #     break
+    # i+=1
+    # k = 0
     for raw in raw_images:
         raw = raw.astype(np.float32)
         raw /= 255.0
@@ -30,6 +31,7 @@ for filename in glob.glob('dataset/*.npy'):
         classname = filename.split('/')[1].split('.')[0].split('_')[3]
         classes.add(classname)
         y.append(classname)
+        break
         # if k > 100:
         #     break
         # k += 1
@@ -41,8 +43,8 @@ for c in classes:
     lut_classes[c] = i
     i+=1
 
-print classes
-print lut_classes
+print(classes)
+print(lut_classes)
 
 y_expected = []
 for elem in y:
@@ -52,15 +54,15 @@ for elem in y:
 
 # Create the model
 model = Sequential()
-model.add(Conv2D(10, kernel_size=(3, 3),
+model.add(Conv2D(32, kernel_size=(3, 3),
                  activation='relu',
                  input_shape=(28,28,1)))
 
-model.add(Conv2D(20, (3, 3), activation='relu'))
+model.add(Conv2D(64, (3, 3), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.25))
 model.add(Flatten())
-model.add(Dense(70, activation='relu'))
+model.add(Dense(128, activation='relu'))
 model.add(Dropout(0.5))
 model.add(Dense(len(classes), activation='softmax'))
 
@@ -73,7 +75,7 @@ metrics=['accuracy'])
 xshuffle, yshuffle = shuffle(x, y_expected)
 
 datasetSize = len(xshuffle)
-partition = int(0.5*datasetSize)
+partition = int(0.6*datasetSize)
 
 x_train, x_test = xshuffle[:partition], xshuffle[partition:]
 y_train, y_test = yshuffle[:partition], yshuffle[partition:]
@@ -83,10 +85,9 @@ y_train = np.array(y_train)
 x_test = np.array(x_test)
 y_test = np.array(y_test)
 
-
 model.fit(x_train, y_train,
           batch_size=128,
-          epochs=3,
+          epochs=5,
           verbose=1,
 validation_data=(x_test, y_test))
 

@@ -6,9 +6,13 @@ import math
 import keras
 from keras.models import load_model
 
-model = load_model('./supermodel2classes.h5')
+model = load_model('./supermodel8classes.h5')
 
-print model.get_weights()[0].shape()
+
+inv_classes = {'banana': 0, 'cloud': 1, 'ant': 2, 'cookie': 3, 'airplane': 4, 'bicycle': 5, 'apple': 6}
+classes = {v: k for k, v in inv_classes.iteritems()}
+print classes
+# print model.get_weights()[0].shape()
 
 def inference(inputimg):
     gray_image = cv2.cvtColor(inputimg, cv2.COLOR_BGR2GRAY)
@@ -27,9 +31,9 @@ def inference(inputimg):
 
     prediction = model.predict(inp)
     pred =  np.argmax(prediction)
-    print prediction
-    if pred == 0: print 'Bicycle! (', prediction[0][0], '%)'
-    else: print 'Cookie! (', prediction[0][1], '%)'
+    print('Detected {} ({} %)'.format(classes[pred], int(100*prediction[0][pred])))
+    # if pred == 0: print 'Bicycle! (', prediction[0][0], '%)'
+    # else: print 'Cookie! (', prediction[0][1], '%)'
 
 class Painter(object):
     def __init__(self, ax, img):
@@ -45,6 +49,17 @@ class Painter(object):
         canvas.mpl_connect('button_press_event', self.button_press_callback)
         canvas.mpl_connect('button_release_event', self.button_release_callback)
         canvas.mpl_connect('motion_notify_event', self.on_move)
+        canvas.mpl_connect('motion_notify_event', self.on_move)
+        canvas.mpl_connect('key_press_event', self.on_press)
+
+
+    def on_press(self, event):
+        if event.key == 'x':
+            self.image = np.zeros((800,800,3), np.uint8)
+        if event.key == 'd':
+            self.button_pressed = True
+        if event.key == 'f':
+            self.button_pressed = False
 
     def button_press_callback(self, event):
         if(event.button == 1):
@@ -68,6 +83,7 @@ class Painter(object):
                 x = int(math.floor(event.xdata))
                 y = int(math.floor(event.ydata))
                 cv2.circle(self.img, (x, y), int(self.brush_size / 2), (self.color, self.color, self.color), -1)
+                self.ax.imshow(self.img, interpolation='nearest', alpha=0.6)
             except:
                 pass
 
