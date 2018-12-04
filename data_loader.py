@@ -7,6 +7,7 @@ from sklearn.utils import shuffle
 # Dataset from
 # https://console.cloud.google.com/storage/browser/quickdraw_dataset/full/numpy_bitmap
 
+USE_COMPRESSED = True
 
 def get_data(path, learn_test_ratio=0.8, nbr_classes=9999, nbr_samples_per_class=9999):
     """ Returns number of classes, x_train, y_train, x_test, y_test tuple
@@ -28,8 +29,11 @@ def get_data(path, learn_test_ratio=0.8, nbr_classes=9999, nbr_samples_per_class
     y = []
     classes = set()
     i = 0
-    for filename in glob.glob('{}/*.npy'.format(path)):
+    ext='npy'
+    if USE_COMPRESSED: ext = 'npz'
+    for filename in glob.glob('{}/*.{}'.format(path, ext)):
         raw_images = np.load(filename)
+        if USE_COMPRESSED : raw_images = raw_images['arr_0']
         print('loading ', filename)
         print(i)
         if i >= nbr_classes:

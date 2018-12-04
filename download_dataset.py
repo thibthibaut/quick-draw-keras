@@ -7,7 +7,7 @@ import numpy as np
 
 if __name__ == '__main__':
 
-    dataset_directory = './dataset/'
+    dataset_directory = './dataset/' # Must end with a '/'
     if not os.path.exists(dataset_directory):
         os.makedirs(dataset_directory)
 
@@ -18,19 +18,28 @@ if __name__ == '__main__':
     print(len(list_of_classes))
     # Actually this could be paralelizzzzed
     for class_name in list_of_classes:
-        if os.path.isfile('{}/{}.npy'.format(dataset_directory, class_name)):
-            print('{} exists already, checking integrity'.format(class_name))
+        if os.path.isfile('{}{}.npy'.format(dataset_directory, class_name)):
+            print('Uncompressed {} exists! this should not happen. Removing.'.format(class_name))
+            subprocess.call(['rm {}{}.npy'.format(dataset_directory, class_name.replace(' ', '\ '))], shell=True)
+
+        if os.path.isfile('{}{}.npz'.format(dataset_directory, class_name)):
+            print('Compressed {} exists already, checking integrity'.format(class_name))
             try:
-                np.load('{}/{}.npy'.format(dataset_directory, class_name))
+                np.load('{}{}.npz'.format(dataset_directory, class_name))
                 print('File seems ok, skipping')
                 continue
             except:
                 print('File seems to be partially downloaded, will download again')
-                subprocess.call(['rm {}{}.npy'.format(dataset_directory, class_name.replace(' ', '\ '))], shell=True)
+                subprocess.call(['rm {}{}.npz'.format(dataset_directory, class_name.replace(' ', '\ '))], shell=True)
                 
         print('Downloading {} with wget'.format(class_name))
         command = 'wget {}{}.npy -P {}'.format(url_root, class_name.replace(' ','%20'), dataset_directory)
         print('running: {} '.format(command))
         subprocess.call([command], shell=True)
+        print('Loading the file for compression')
+        uncompressed = np.load('{}{}.npy'.format(dataset_directory, class_name))
+        print('Compressing...')
+        np.savez_compressed('{}{}'.format(dataset_directory, class_name), uncompressed)
+        print('Done, removing the uncompressed file')
+        subprocess.call(['rm {}{}.npy'.format(dataset_directory, class_name.replace(' ', '\ '))], shell=True)
         print('Done')
-
